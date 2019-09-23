@@ -1,4 +1,4 @@
-package com.rostan.model;
+package com.rostan.test;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

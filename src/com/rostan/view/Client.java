@@ -1,246 +1,142 @@
 package com.rostan.view;
 
-import com.rostan.model.ChatMessage;
+import com.rostan.model.ListenServerThread;
 
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.Scanner;
 
 public class Client {
+    private JTextField hostText;
+    private JTextField portText;
+    private JButton connectButton;
+    private JPanel panelMain;
+    private JTextField messageTxt;
+    private JTextField keyTxt;
+    private JButton sendButton;
+    private JTextField encryptedText;
 
-    // for I/O
-    private ObjectInputStream sInput;		// to read from the socket
-    private ObjectOutputStream sOutput;		// to write on the socket
+    private ListenServerThread listenServerThread;
+    private ObjectInputStream objectInputStream;
+    private ObjectOutputStream objectOutputStream;
     private Socket socket;
 
-    // if I use a GUI or not
-    private GUIClient cg;
-
-    // the server, the port and the username
     private String server, username;
     private int port;
+    private boolean connected;
     InetAddress ipAddr;
 
-    /*
-	 *  Constructor called by console mode
-	 *  server: the server address
-	 *  port: the port number
-	 *  username: the username
-     */
-    Client(String server, int port, String username) {
-        // which calls the common constructor with the GUI set to null
-        this(server, port, username, null);
-    }
-
-    /*
-	 * Constructor call when used from a GUI
-	 * in console mode the ClienGUI parameter is null
-     */
-    Client(String server, int port, String username, GUIClient cg) {
-        this.server = server;
-        this.port = port;
-        this.username = username;
-        // save if we are in GUI mode or not
-        this.cg = cg;
-    }
-
-    
-    public boolean start() {
-        // try to connect to the server
-        try {
-            socket = new Socket(server, port);
-        } // if it failed not much I can so
-        catch (Exception ec) {
-            display("Error connectiong to server:" + ec);
-            return false;
-        }
-
-        String msg = "Connection accepted " + socket.getInetAddress() + ":" + socket.getPort();
-        display(msg);
-
-        /* Creating both Data Stream */
-        try {
-            sInput = new ObjectInputStream(socket.getInputStream());
-            sOutput = new ObjectOutputStream(socket.getOutputStream());
-        } catch (IOException eIO) {
-            display("Exception creating new Input/output Streams: " + eIO);
-            return false;
-        }
-
-        // creates the Thread to listen from the server 
-        new ListenFromServer().start();
-        // Send our username to the server this is the only message that we
-        // will send as a String. All other messages will be ChatMessage objects
-        try {
-            sOutput.writeObject(username);
-        } catch (IOException eIO) {
-            display("Exception doing login : " + eIO);
-            disconnect();
-            return false;
-        }
-        // success we inform the caller that it worked
-        return true;
-    }
-
-    /*
-	 * To send a message to the console or the GUI
-     */
-    private void display(String msg) {
-        if (cg == null) {
-            System.out.println(msg);      // println in console mode
-        } else {
-            cg.append(msg + "\n");		// append to the ClientGUI JTextArea (or whatever)
-        }
-    }
-
-    /*
-	 * To send a message to the server
-     */
-    void sendMessage(ChatMessage msg) {
-        try {
-            sOutput.writeObject(msg);
-        } catch (IOException e) {
-            display("Exception writing to server: " + e);
-        }
-    }
-
-    /*
-	 * When something goes wrong
-	 * Close the Input/Output streams and disconnect not much to do in the catch clause
-     */
-    private void disconnect() {
-        try {
-            if (sInput != null) {
-                sInput.close();
-            }
-        } catch (Exception e) {
-        } // not much else I can do
-        try {
-            if (sOutput != null) {
-                sOutput.close();
-            }
-        } catch (Exception e) {
-        } // not much else I can do
-        try {
-            if (socket != null) {
-                socket.close();
-            }
-        } catch (Exception e) {
-        } // not much else I can do
-
-        // inform the GUI
-        if (cg != null) {
-            cg.connectionFailed();
-        }
-
-    }
-
-    
-    public String getIP(){
-        try {
-            ipAddr = InetAddress.getLocalHost();
-            System.out.println(ipAddr.getHostAddress());
-            
-        } catch (UnknownHostException ex) {
-            ex.printStackTrace();
-        }
-        return ipAddr.getHostAddress()+"";
-    }
-    
     public static void main(String[] args) {
-        // default values
-        int portNumber = 1500;
-        String serverAddress = "localhost";
-        String userName = "Anonymous";
-
-        // depending of the number of arguments provided we fall through
-        switch (args.length) {
-            // > javac Client username portNumber serverAddr
-            case 3:
-                serverAddress = args[2];
-            // > javac Client username portNumber
-            case 2:
-                try {
-                    portNumber = Integer.parseInt(args[1]);
-                } catch (Exception e) {
-                    System.out.println("Invalid port number.");
-                    System.out.println("Usage is: > java Client [username] [portNumber] [serverAddress]");
-                    return;
-                }
-            // > javac Client username
-            case 1:
-                userName = args[0];
-            // > java Client
-            case 0:
-                break;
-            // invalid number of arguments
-            default:
-                System.out.println("Usage is: > java Client [username] [portNumber] {serverAddress]");
-                return;
-        }
-        // create the Client object
-        Client client = new Client(serverAddress, portNumber, userName);
-        // ClientTest if we can start the connection to the Server
-        // if it failed nothing we can do
-        if (!client.start()) {
-            return;
-        }
-
-        // wait for messages from user
-        Scanner scan = new Scanner(System.in);
-        // loop forever for message from the user
-        while (true) {
-            System.out.print("> ");
-            // read message from user
-            String msg = scan.nextLine();
-            // logout if message is LOGOUT
-            if (msg.equalsIgnoreCase("LOGOUT")) {
-                client.sendMessage(new ChatMessage(ChatMessage.LOGOUT, ""));
-                // break to do the disconnect
-                break;
-            } // message WhoIsIn
-            else if (msg.equalsIgnoreCase("WHOISIN")) {
-                client.sendMessage(new ChatMessage(ChatMessage.WHOISIN, ""));
-            } else {				// default to ordinary message
-                client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, msg));
-            }
-        }
-        // done disconnect
-        client.disconnect();
+        JFrame frame = new JFrame("Server");
+        frame.setContentPane(new Client().panelMain);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.pack();
+        frame.setVisible(true);
     }
 
-    void sendMessage(String string) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+    public Client() {
+        this.server = "127.0.0.1";
+        this.port = 1000;
 
-    
-    class ListenFromServer extends Thread {
+        hostText.setText(this.server);
+        portText.setText(String.valueOf(this.port));
+        keyTxt.setEditable(false);
+        messageTxt.setEditable(false);
+        encryptedText.setEditable(false);
 
-        public void run() {
-            while (true) {
-                try {
-                    String msg = (String) sInput.readObject();
-                    // if console mode print the message and add back the prompt
-                    if (cg == null) {
-                        System.out.println(msg);
-                        System.out.print("> ");
-                    } else {
-                        cg.append(msg);
-                    }
-                } catch (IOException e) {
-                    display("Server has close the connection: " + e);
-                    if (cg != null) {
-                        cg.connectionFailed();
-                    }
-                    break;
-                } // can't happen with a String object but need the catch anyhow
-                catch (ClassNotFoundException e2) {
+        connectButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (connected) {
+                    disconnect();
+                } else {
+                    connect();
                 }
             }
+        });
+        sendButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+            }
+        });
+    }
+
+    private void connect() {
+        connected = true;
+        connectButton.setText("Disconnect");
+        hostText.setEditable(false);
+        portText.setEditable(false);
+        keyTxt.setEditable(true);
+        messageTxt.setEditable(true);
+
+        try {
+            this.socket = new Socket(this.server, this.port);
+            this.objectInputStream = new ObjectInputStream(socket.getInputStream());
+            this.objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+            System.out.println("Connection accepted " + socket.getInetAddress()
+                    + ": " + socket.getPort());
+        } catch (IOException e) {
+            connected = false;
+            connectButton.setText("Connect");
+            hostText.setEditable(true);
+            portText.setEditable(true);
+            keyTxt.setEditable(false);
+            messageTxt.setEditable(false);
+            System.out.println("Error connecting to server: " + e.getMessage());
+        }
+
+        //  Creating a thread to listen server
+        this.listenServerThread = new ListenServerThread(this.objectInputStream,
+                this.objectOutputStream);
+        this.listenServerThread.start();
+
+        //  Send a message to the server
+        try {
+            objectOutputStream.writeObject(username);
+        } catch (IOException e) {
+            connected = false;
+            connectButton.setText("Connect");
+            hostText.setEditable(true);
+            portText.setEditable(true);
+            keyTxt.setEditable(false);
+            messageTxt.setEditable(false);
+            System.out.println("Exception doing login: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void disconnect() {
+        connected = false;
+        connectButton.setText("Connect");
+        hostText.setEditable(true);
+        portText.setEditable(true);
+        keyTxt.setEditable(false);
+        messageTxt.setEditable(false);
+
+        keyTxt.setText("");
+        messageTxt.setText("");
+
+        try {
+            objectInputStream.close();
+            objectOutputStream.close();
+            socket.close();
+            System.out.println("Disconnection successful from the server.");
+        } catch (IOException e) {
+            connected = true;
+            connectButton.setText("Disconnect");
+            hostText.setEditable(false);
+            portText.setEditable(false);
+            keyTxt.setEditable(true);
+            messageTxt.setEditable(true);
+            System.out.println("Error disconnecting from the server: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }

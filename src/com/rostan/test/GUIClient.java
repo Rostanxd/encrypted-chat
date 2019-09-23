@@ -1,4 +1,4 @@
-package com.rostan.view;
+package com.rostan.test;
 
 import com.rostan.model.ChatMessage;
 
