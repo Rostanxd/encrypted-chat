@@ -1,6 +1,7 @@
 package com.rostan.view;
 
 import com.rostan.model.ChatMessage;
+import com.rostan.model.ClientChat;
 import com.rostan.model.ListenServerThread;
 
 import javax.swing.*;
@@ -9,40 +10,40 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.InetAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 
 public class Client {
     private JTextField hostText;
     private JTextField portText;
     private JButton connectButton;
-    private JPanel panelMain;
+    public JPanel panelMain;
     private JTextField messageTxt;
     private JTextField keyTxt;
     private JButton sendButton;
+    private JLabel interactingLabel;
 
-    private ListenServerThread listenServerThread;
     private ObjectInputStream objectInputStream;
     private ObjectOutputStream objectOutputStream;
     private Socket socket;
 
-    private String server, username;
+    private String server, clientType;
     private int port;
     private boolean connected;
+    private ClientChat clientChat;
 
-    public static void main(String[] args) {
-        JFrame frame = new JFrame("Client One");
-        frame.setContentPane(new Client().panelMain);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.pack();
-        frame.setVisible(true);
-    }
-
-    public Client() {
+    public Client(String clientType) {
         this.server = "127.0.0.1";
         this.port = 1000;
-        this.username = "USER ONE";
+        this.clientType = clientType;
+
+        if (clientType.equals("ENC")) {
+           this.clientChat = new ClientChat(clientType, "Rostan");
+            this.interactingLabel.setText("Here you can write a message, encrypted and send it to server \n" +
+                    "to turn a light.");
+        } else {
+            this.clientChat = new ClientChat(clientType, "Cinthya");
+            this.interactingLabel.setText("Here you can turn off the light sending the correct message.");
+        }
 
         hostText.setText(this.server);
         portText.setText(String.valueOf(this.port));
@@ -109,13 +110,13 @@ public class Client {
         }
 
         //  Creating a thread to listen server
-        this.listenServerThread = new ListenServerThread(this.objectInputStream,
+        ListenServerThread listenServerThread = new ListenServerThread(this.objectInputStream,
                 this.objectOutputStream);
-        this.listenServerThread.start();
+        listenServerThread.start();
 
         //  Send a message to the server
         try {
-            objectOutputStream.writeObject(username);
+            objectOutputStream.writeObject(this.clientChat);
         } catch (IOException e) {
             connected = false;
             connectButton.setText("Connect");
@@ -166,7 +167,11 @@ public class Client {
 
     private void writeMsgToServer(String message) {
         try {
-            objectOutputStream.writeObject(new ChatMessage(ChatMessage.MESSAGE, message));
+            if (this.clientType.equals("ENC")) {
+                objectOutputStream.writeObject(new ChatMessage(ChatMessage.ENCRYPTED_MESSAGE, message));
+            } else {
+                objectOutputStream.writeObject(new ChatMessage(ChatMessage.UNLOCK_MESSAGE, message));
+            }
         } catch (IOException ex) {
             ex.printStackTrace();
         }

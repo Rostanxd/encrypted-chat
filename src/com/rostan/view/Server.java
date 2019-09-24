@@ -24,7 +24,7 @@ public class Server {
     public JPanel colorPanel;
 
     private Boolean running, keepGoing;
-    private int port, uniqueId;
+    private int port;
     private ArrayList<ClientThread> clientThreads;
     private SimpleDateFormat sdf;
     private ServerRunning serverRunning;
@@ -109,7 +109,7 @@ public class Server {
                 }
 
                 //  Making a thread of it
-                ClientThread clientThread = new ClientThread(socket, uniqueId, this);
+                ClientThread clientThread = new ClientThread(socket, this);
                 clientThreads.add(clientThread);
                 clientThread.start();
             }
@@ -153,17 +153,17 @@ public class Server {
     }
 
     //  Function to remove the client from the list.
-    private synchronized void remove(int id) {
-        // scan the array list until we found the Id
-        for (int i = 0; i < clientThreads.size(); ++i) {
-            ClientThread clientThread = clientThreads.get(i);
-            // found it
-            if (clientThread.id == id) {
-                clientThreads.remove(i);
-                return;
-            }
-        }
-    }
+//    private synchronized void remove(int id) {
+//        // scan the array list until we found the Id
+//        for (int i = 0; i < clientThreads.size(); ++i) {
+//            ClientThread clientThread = clientThreads.get(i);
+//            // found it
+//            if (clientThread.id == id) {
+//                clientThreads.remove(i);
+//                return;
+//            }
+//        }
+//    }
 
     class ServerRunning extends Thread {
         public void run() {

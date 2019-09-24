@@ -10,24 +10,24 @@ import java.net.Socket;
 import java.util.Date;
 
 public class ClientThread extends Thread {
-    public int id;
-    private String username, dateStr;
+    private String clientType;
+    private ClientChat clientChat;
+    private String dateStr;
     private Socket socket;
     private ObjectInputStream objectInputStream;
     private ObjectOutputStream objectOutputStream;
     private Server server;
 
-    public ClientThread(Socket socket, int unique, Server server) {
+    public ClientThread(Socket socket, Server server) {
         this.server = server;
-        id = ++unique;
         this.socket = socket;
         System.out.println("Thread trying to create Object Input/Output Streams");
 
         try {
             objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
             objectInputStream = new ObjectInputStream(socket.getInputStream());
-            username = (String) objectInputStream.readObject();
-            this.server.addToLog(id + " - " + username + " just connected!");
+            clientChat = (ClientChat) objectInputStream.readObject();
+            this.server.addToLog(this.clientChat.getTypeDescription() + " - " + clientChat.name + " just connected!");
             this.server.colorPanel.setBackground(Color.yellow);
         } catch (IOException | ClassNotFoundException e) {
             System.out.println("Exception creating new Input/output Streams: " + e);
@@ -44,7 +44,7 @@ public class ClientThread extends Thread {
             try {
                 chatMessage = (ChatMessage) objectInputStream.readObject();
             } catch (IOException e) {
-                System.out.println(id + " - " + username + " Exception reading Streams: " + e);
+                System.out.println(this.clientChat.getTypeDescription() + " - " + clientChat.name + " Exception reading Streams: " + e);
                 break;
             } catch (ClassNotFoundException e2) {
                 break;
@@ -53,19 +53,28 @@ public class ClientThread extends Thread {
             String message = chatMessage.getMessage();
 
             switch (chatMessage.getType()) {
-                case ChatMessage.MESSAGE:
-                    this.server.addToLog(id + " - " + username + " encrypted message is: " + message);
+                case ChatMessage.WHOISIN:
+                    writeMsgToClient(this.clientChat.getTypeDescription() + " - " + clientChat.name + " since " + this.dateStr);
+                    break;
+                case ChatMessage.ENCRYPTED_MESSAGE:
+                    this.server.addToLog(this.clientChat.getTypeDescription() + " - " + clientChat.name + " encrypted message is: " + message);
                     this.server.encryptedText.setText(message);
                     this.server.colorPanel.setBackground(Color.green);
                     break;
                 case ChatMessage.LOGOUT:
-                    this.server.addToLog(id + " - " + username + " disconnected with a LOGOUT message.");
+                    this.server.addToLog(this.clientChat.getTypeDescription() + " - " + clientChat.name + " disconnected with a LOGOUT message.");
                     this.server.encryptedText.setText("");
                     this.server.colorPanel.setBackground(Color.gray);
                     keepGoing = false;
                     break;
-                case ChatMessage.WHOISIN:
-                    writeMsgToClient(id + " - " + username + " since " + this.dateStr);
+                case ChatMessage.UNLOCK_MESSAGE:
+                    this.server.addToLog(this.clientChat.getTypeDescription() + " - " + clientChat.name + " unlocking message with: " + message);
+                    if (message.equals(server.encryptedText.getText())) {
+                        this.server.addToLog(this.clientChat.getTypeDescription() + " - " + clientChat.name + " just decode the message.");
+                        this.server.colorPanel.setBackground(Color.gray);
+                    } else {
+                        this.server.addToLog(this.clientChat.getTypeDescription() + " - " + clientChat.name + " invalid encrypted message.");
+                    }
                     break;
             }
         }
@@ -94,7 +103,7 @@ public class ClientThread extends Thread {
         try {
             objectOutputStream.writeObject(msg);
         } catch (IOException e) {
-            System.out.println("Error sending message to " + username);
+            System.out.println("Error sending message to " + this.clientChat.name);
             System.out.println(e.toString());
         }
     }

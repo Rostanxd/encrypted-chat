@@ -401,12 +401,12 @@ public class GUIClient extends javax.swing.JFrame {
                 array[i]=(char)(array[i]-valor);
             }
             String encrypt = String.valueOf(array);
-            client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, encrypt));
+            client.sendMessage(new ChatMessage(ChatMessage.ENCRYPTED_MESSAGE, encrypt));
             /*
         
         this.jTextField1.setText (encrypt);
             */
-            //client.sendMessage(new com.mbutgae.jf.chat.ChatMessage(com.mbutgae.jf.chat.ChatMessage.MESSAGE, tf.getText()));
+            //client.sendMessage(new com.mbutgae.jf.chat.ChatMessage(com.mbutgae.jf.chat.ChatMessage.ENCRYPTED_MESSAGE, tf.getText()));
             tf.setText("");
             return;
         }
@@ -431,8 +431,8 @@ public class GUIClient extends javax.swing.JFrame {
 
     private void TONActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_TONActionPerformed
         // TODO add your handling code here:
-        client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, "The Light is turn on"));
-        //client.sendMessage(new com.mbutgae.jf.chat.ChatMessage(com.mbutgae.jf.chat.ChatMessage.MESSAGE, "The Light is turn on"));
+        client.sendMessage(new ChatMessage(ChatMessage.ENCRYPTED_MESSAGE, "The Light is turn on"));
+        //client.sendMessage(new com.mbutgae.jf.chat.ChatMessage(com.mbutgae.jf.chat.ChatMessage.ENCRYPTED_MESSAGE, "The Light is turn on"));
 //        GUIServer foco = new GUIServer();
     }//GEN-LAST:event_TONActionPerformed
 

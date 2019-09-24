@@ -206,7 +206,7 @@ public class Client {
             else if (msg.equalsIgnoreCase("WHOISIN")) {
                 client.sendMessage(new ChatMessage(ChatMessage.WHOISIN, ""));
             } else {				// default to ordinary message
-                client.sendMessage(new ChatMessage(ChatMessage.MESSAGE, msg));
+                client.sendMessage(new ChatMessage(ChatMessage.ENCRYPTED_MESSAGE, msg));
             }
         }
         // done disconnect
