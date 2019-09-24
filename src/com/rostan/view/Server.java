@@ -4,6 +4,7 @@ import com.rostan.model.ChatMessage;
 import com.rostan.model.ClientThread;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
@@ -17,8 +18,10 @@ public class Server {
     private JPanel panelMain;
     private JTextField portText;
     private JButton startButton;
-    private JTextField messageText;
     private JTextArea logTextArea;
+    private JScrollPane logScrollPane;
+    public JTextField encryptedText;
+    public JPanel colorPanel;
 
     private Boolean running, keepGoing;
     private int port, uniqueId;
@@ -32,6 +35,8 @@ public class Server {
         JFrame frame = new JFrame("Server");
         frame.setContentPane(new Server().panelMain);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(1000, 600);
+        frame.setLocationRelativeTo(null);
         frame.pack();
         frame.setVisible(true);
     }
@@ -40,12 +45,15 @@ public class Server {
     public Server() {
         //  Form
         this.logTextArea.setEditable(false);
+        this.encryptedText.setEditable(false);
+        this.colorPanel.setBackground(Color.gray);
 
         //  Initializing variables
         this.startButton.setText("Start");
         this.running = true;
         this.portText.setText("1000");
         this.sdf = new SimpleDateFormat("HH:mm:ss");
+        this.encryptedText.setText("");
 
         startButton.addActionListener(new ActionListener() {
             @Override
@@ -101,7 +109,7 @@ public class Server {
                 }
 
                 //  Making a thread of it
-                ClientThread clientThread = new ClientThread(socket, uniqueId);
+                ClientThread clientThread = new ClientThread(socket, uniqueId, this);
                 clientThreads.add(clientThread);
                 clientThread.start();
             }
@@ -109,8 +117,7 @@ public class Server {
             //  Closing the server socket, and closing all the client sockets
             try {
                 serverSocket.close();
-                for (int i = 0; i < clientThreads.size(); ++i) {
-                    ClientThread clientThread = clientThreads.get(i);
+                for (ClientThread clientThread : clientThreads) {
                     clientThread.close();
 //                    remove(clientThread.id);
                 }
@@ -125,6 +132,8 @@ public class Server {
 
     private void stopServer() {
         startButton.setText("Start");
+        encryptedText.setText("");
+        colorPanel.setBackground(Color.gray);
         portText.setEditable(true);
         running = true;
         keepGoing = false;
@@ -138,7 +147,7 @@ public class Server {
     }
 
     //  Function to print the log in the screen
-    private void addToLog(String text) {
+    public void addToLog(String text) {
         String time = sdf.format(new Date()) + ": ";
         this.logTextArea.append(time + text + "\n");
     }

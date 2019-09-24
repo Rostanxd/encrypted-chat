@@ -1,5 +1,6 @@
 package com.rostan.view;
 
+import com.rostan.model.ChatMessage;
 import com.rostan.model.ListenServerThread;
 
 import javax.swing.*;
@@ -20,7 +21,6 @@ public class Client {
     private JTextField messageTxt;
     private JTextField keyTxt;
     private JButton sendButton;
-    private JTextField encryptedText;
 
     private ListenServerThread listenServerThread;
     private ObjectInputStream objectInputStream;
@@ -30,10 +30,9 @@ public class Client {
     private String server, username;
     private int port;
     private boolean connected;
-    InetAddress ipAddr;
 
     public static void main(String[] args) {
-        JFrame frame = new JFrame("Server");
+        JFrame frame = new JFrame("Client One");
         frame.setContentPane(new Client().panelMain);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
@@ -43,12 +42,13 @@ public class Client {
     public Client() {
         this.server = "127.0.0.1";
         this.port = 1000;
+        this.username = "USER ONE";
 
         hostText.setText(this.server);
         portText.setText(String.valueOf(this.port));
         keyTxt.setEditable(false);
         messageTxt.setEditable(false);
-        encryptedText.setEditable(false);
+        sendButton.setEnabled(false);
 
         connectButton.addActionListener(new ActionListener() {
             @Override
@@ -63,7 +63,21 @@ public class Client {
         sendButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                int key;
+                try {
+                    key = Integer.parseInt(keyTxt.getText());
+                    if (key == 0) {
+                        JOptionPane.showMessageDialog(null, "Please type a key to continue!");
+                    } else {
+                        writeMsgToServer(encodingMessageRSA(key, messageTxt.getText()));
+                        keyTxt.setEditable(false);
+                        messageTxt.setEditable(false);
+                        sendButton.setEnabled(false);
+                    }
+                } catch (NumberFormatException nfe) {
+                    JOptionPane.showMessageDialog(null, "Error key!");
+                    System.out.println("NumberFormatException: " + nfe.getMessage());
+                }
             }
         });
     }
@@ -75,13 +89,14 @@ public class Client {
         portText.setEditable(false);
         keyTxt.setEditable(true);
         messageTxt.setEditable(true);
+        sendButton.setEnabled(true);
 
         try {
             this.socket = new Socket(this.server, this.port);
             this.objectInputStream = new ObjectInputStream(socket.getInputStream());
             this.objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
             System.out.println("Connection accepted " + socket.getInetAddress()
-                    + ": " + socket.getPort());
+                    + ":" + socket.getPort());
         } catch (IOException e) {
             connected = false;
             connectButton.setText("Connect");
@@ -89,6 +104,7 @@ public class Client {
             portText.setEditable(true);
             keyTxt.setEditable(false);
             messageTxt.setEditable(false);
+            sendButton.setEnabled(false);
             System.out.println("Error connecting to server: " + e.getMessage());
         }
 
@@ -107,6 +123,7 @@ public class Client {
             portText.setEditable(true);
             keyTxt.setEditable(false);
             messageTxt.setEditable(false);
+            sendButton.setEnabled(false);
             System.out.println("Exception doing login: " + e.getMessage());
             e.printStackTrace();
         }
@@ -124,6 +141,13 @@ public class Client {
         messageTxt.setText("");
 
         try {
+            objectOutputStream.writeObject(new ChatMessage(ChatMessage.LOGOUT, ""));
+        } catch (IOException e) {
+            System.out.println("Error writing to the server: username; " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        try {
             objectInputStream.close();
             objectOutputStream.close();
             socket.close();
@@ -138,5 +162,17 @@ public class Client {
             System.out.println("Error disconnecting from the server: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private void writeMsgToServer(String message) {
+        try {
+            objectOutputStream.writeObject(new ChatMessage(ChatMessage.MESSAGE, message));
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private String encodingMessageRSA(int key, String message) {
+        return message;
     }
 }

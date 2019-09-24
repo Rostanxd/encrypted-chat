@@ -1,5 +1,8 @@
 package com.rostan.model;
 
+import com.rostan.view.Server;
+
+import java.awt.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -12,8 +15,10 @@ public class ClientThread extends Thread {
     private Socket socket;
     private ObjectInputStream objectInputStream;
     private ObjectOutputStream objectOutputStream;
+    private Server server;
 
-    public ClientThread(Socket socket, int unique) {
+    public ClientThread(Socket socket, int unique, Server server) {
+        this.server = server;
         id = ++unique;
         this.socket = socket;
         System.out.println("Thread trying to create Object Input/Output Streams");
@@ -22,6 +27,8 @@ public class ClientThread extends Thread {
             objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
             objectInputStream = new ObjectInputStream(socket.getInputStream());
             username = (String) objectInputStream.readObject();
+            this.server.addToLog(id + " - " + username + " just connected!");
+            this.server.colorPanel.setBackground(Color.yellow);
         } catch (IOException | ClassNotFoundException e) {
             System.out.println("Exception creating new Input/output Streams: " + e);
             return;
@@ -37,7 +44,7 @@ public class ClientThread extends Thread {
             try {
                 chatMessage = (ChatMessage) objectInputStream.readObject();
             } catch (IOException e) {
-                System.out.println(username + " Exception reading Streams: " + e);
+                System.out.println(id + " - " + username + " Exception reading Streams: " + e);
                 break;
             } catch (ClassNotFoundException e2) {
                 break;
@@ -47,14 +54,18 @@ public class ClientThread extends Thread {
 
             switch (chatMessage.getType()) {
                 case ChatMessage.MESSAGE:
-                    System.out.println(username + ": " + message);
+                    this.server.addToLog(id + " - " + username + " encrypted message is: " + message);
+                    this.server.encryptedText.setText(message);
+                    this.server.colorPanel.setBackground(Color.green);
                     break;
                 case ChatMessage.LOGOUT:
-                    System.out.println(this.username + " disconnected with a LOGOUT message.");
+                    this.server.addToLog(id + " - " + username + " disconnected with a LOGOUT message.");
+                    this.server.encryptedText.setText("");
+                    this.server.colorPanel.setBackground(Color.gray);
                     keepGoing = false;
                     break;
                 case ChatMessage.WHOISIN:
-                    writeMsgToClient(this.username + " since " + this.dateStr);
+                    writeMsgToClient(id + " - " + username + " since " + this.dateStr);
                     break;
             }
         }
