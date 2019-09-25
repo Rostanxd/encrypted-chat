@@ -101,6 +101,7 @@ public class Server {
             while (keepGoing) {
                 // Format message saying we are waiting
                 this.addToLog("Server waiting for clients on port: " + this.port + ".");
+                this.colorPanel.setBackground(Color.yellow);
                 socket = serverSocket.accept();
 
                 //  Controlling the loop
@@ -139,6 +140,7 @@ public class Server {
         keepGoing = false;
 
         addToLog("Server destroyed and closed.");
+        this.colorPanel.setBackground(Color.gray);
         try {
             new Socket("localhost", this.port);
         } catch (Exception e) {
@@ -155,6 +157,7 @@ public class Server {
     //  Function to remove the client from the list.
 //    private synchronized void remove(int id) {
 //        // scan the array list until we found the Id
+
 //        for (int i = 0; i < clientThreads.size(); ++i) {
 //            ClientThread clientThread = clientThreads.get(i);
 //            // found it

@@ -28,7 +28,6 @@ public class ClientThread extends Thread {
             objectInputStream = new ObjectInputStream(socket.getInputStream());
             clientChat = (ClientChat) objectInputStream.readObject();
             this.server.addToLog(this.clientChat.getTypeDescription() + " - " + clientChat.name + " just connected!");
-            this.server.colorPanel.setBackground(Color.yellow);
         } catch (IOException | ClassNotFoundException e) {
             System.out.println("Exception creating new Input/output Streams: " + e);
             return;
