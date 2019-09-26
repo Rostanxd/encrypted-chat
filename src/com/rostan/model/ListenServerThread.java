@@ -1,5 +1,7 @@
 package com.rostan.model;
 
+import com.rostan.view.Client;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -7,6 +9,7 @@ import java.io.ObjectOutputStream;
 public class ListenServerThread extends Thread {
     private ObjectInputStream objectInputStream;
     private ObjectOutputStream objectOutputStream;
+    private Client client;
 
     public ListenServerThread(ObjectInputStream objectInputStream,
                               ObjectOutputStream objectOutputStream) {

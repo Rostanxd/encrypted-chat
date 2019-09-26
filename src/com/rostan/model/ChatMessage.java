@@ -19,11 +19,12 @@ public class ChatMessage implements Serializable {
 
     // The different types of message sent by the Client
     // WHOISIN to receive the list of the users connected
-    // MESSAGE an ordinary message
+    // ENCRYPTED_MESSAGE an ordinary message
     // LOGOUT to disconnect from the Server
     public static final int WHOISIN = 0;
-    public static final int MESSAGE = 1;
+    public static final int ENCRYPTED_MESSAGE = 1;
     public static final int LOGOUT = 2;
+    public static final int UNLOCK_MESSAGE = 3;
     private int type;
     private String message;
 
