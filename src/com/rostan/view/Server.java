@@ -1,6 +1,5 @@
 package com.rostan.view;
 
-import com.rostan.model.ChatMessage;
 import com.rostan.model.ClientThread;
 
 import javax.swing.*;
@@ -15,13 +14,14 @@ import java.util.ArrayList;
 import java.util.Date;
 
 public class Server {
-    private JPanel panelMain;
+    public JPanel panelMain;
     private JTextField portText;
     private JButton startButton;
     private JTextArea logTextArea;
     private JScrollPane logScrollPane;
     public JTextField encryptedText;
     public JPanel colorPanel;
+    private JLabel imageLabel;
 
     private Boolean running, keepGoing;
     private int port;
@@ -31,22 +31,11 @@ public class Server {
     private ServerSocket serverSocket;
     private Socket socket;
 
-    public static void main(String[] args) {
-        JFrame frame = new JFrame("Server");
-        frame.setContentPane(new Server().panelMain);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(1000, 600);
-        frame.setLocationRelativeTo(null);
-        frame.pack();
-        frame.setVisible(true);
-    }
-
     //  Constructor
     public Server() {
         //  Form
         this.logTextArea.setEditable(false);
         this.encryptedText.setEditable(false);
-        this.colorPanel.setBackground(Color.gray);
 
         //  Initializing variables
         this.startButton.setText("Start");
@@ -54,6 +43,10 @@ public class Server {
         this.portText.setText("1000");
         this.sdf = new SimpleDateFormat("HH:mm:ss");
         this.encryptedText.setText("");
+        this.imageLabel.setText("");
+
+        //  Setting the image
+        setTurnOnLight(false);
 
         startButton.addActionListener(new ActionListener() {
             @Override
@@ -101,7 +94,6 @@ public class Server {
             while (keepGoing) {
                 // Format message saying we are waiting
                 this.addToLog("Server waiting for clients on port: " + this.port + ".");
-                this.colorPanel.setBackground(Color.yellow);
                 socket = serverSocket.accept();
 
                 //  Controlling the loop
@@ -110,7 +102,7 @@ public class Server {
                 }
 
                 //  Making a thread of it
-                ClientThread clientThread = new ClientThread(socket, this);
+                ClientThread clientThread = new ClientThread(socket, this, this.clientThreads);
                 clientThreads.add(clientThread);
                 clientThread.start();
             }
@@ -134,13 +126,20 @@ public class Server {
     private void stopServer() {
         startButton.setText("Start");
         encryptedText.setText("");
-        colorPanel.setBackground(Color.gray);
         portText.setEditable(true);
         running = true;
         keepGoing = false;
+        setTurnOnLight(false);
+
+        //  Closing the client sockets
+        for (ClientThread ct : clientThreads) {
+            ct.close();
+        }
+
+        //  Clearing the array
+        clientThreads.clear();
 
         addToLog("Server destroyed and closed.");
-        this.colorPanel.setBackground(Color.gray);
         try {
             new Socket("localhost", this.port);
         } catch (Exception e) {
@@ -154,19 +153,13 @@ public class Server {
         this.logTextArea.append(time + text + "\n");
     }
 
-    //  Function to remove the client from the list.
-//    private synchronized void remove(int id) {
-//        // scan the array list until we found the Id
-
-//        for (int i = 0; i < clientThreads.size(); ++i) {
-//            ClientThread clientThread = clientThreads.get(i);
-//            // found it
-//            if (clientThread.id == id) {
-//                clientThreads.remove(i);
-//                return;
-//            }
-//        }
-//    }
+    public void setTurnOnLight(boolean turnOnLight) {
+        if (turnOnLight) {
+            this.imageLabel.setIcon(new ImageIcon(ClassLoader.getSystemResource("bulb_on.png")));
+        } else {
+            this.imageLabel.setIcon(new ImageIcon(ClassLoader.getSystemResource("bulb_off.png")));
+        }
+    }
 
     class ServerRunning extends Thread {
         public void run() {

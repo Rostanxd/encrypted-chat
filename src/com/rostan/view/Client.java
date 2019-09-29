@@ -3,6 +3,7 @@ package com.rostan.view;
 import com.rostan.model.ChatMessage;
 import com.rostan.model.ClientChat;
 import com.rostan.model.ListenServerThread;
+import com.rostan.util.RivestShamirAdleman;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -17,39 +18,28 @@ public class Client {
     private JTextField portText;
     private JButton connectButton;
     public JPanel panelMain;
-    private JTextField messageTxt;
-    private JTextField keyTxt;
-    private JButton sendButton;
+    public JTextField messageTxt;
+    public JTextField keyTxt;
+    public JButton sendButton;
     private JLabel interactingLabel;
+    public JPanel panelColor;
 
     private ObjectInputStream objectInputStream;
     private ObjectOutputStream objectOutputStream;
     private Socket socket;
 
-    private String server, clientType;
+    public String server, type;
     private int port;
-    private boolean connected;
+    public boolean connected;
     private ClientChat clientChat;
+    private ListenServerThread listenServerThread;
 
-    public Client(String clientType) {
+    public Client(String type) {
         this.server = "127.0.0.1";
         this.port = 1000;
-        this.clientType = clientType;
+        this.type = type;
 
-        if (clientType.equals("ENC")) {
-           this.clientChat = new ClientChat(clientType, "Rostan");
-            this.interactingLabel.setText("Here you can write a message, encrypted and send it to server \n" +
-                    "to turn a light.");
-        } else {
-            this.clientChat = new ClientChat(clientType, "Cinthya");
-            this.interactingLabel.setText("Here you can turn off the light sending the correct message.");
-        }
-
-        hostText.setText(this.server);
-        portText.setText(String.valueOf(this.port));
-        keyTxt.setEditable(false);
-        messageTxt.setEditable(false);
-        sendButton.setEnabled(false);
+        setDefaultProperties();
 
         connectButton.addActionListener(new ActionListener() {
             @Override
@@ -83,14 +73,48 @@ public class Client {
         });
     }
 
+    public void setDefaultProperties() {
+        if (type.equals("ENC")) {
+            this.clientChat = new ClientChat(type, "Rostan");
+            this.interactingLabel.setText("Here you can write a message, encrypted and send it to server \n" +
+                    "to turn a light.");
+            this.sendButton.setText("Send");
+        } else {
+            this.clientChat = new ClientChat(type, "Cinthya");
+            this.interactingLabel.setText("Here you can turn off the light sending the correct message.");
+            this.sendButton.setText("Unlock");
+        }
+
+        connected = false;
+
+        hostText.setText(this.server);
+        portText.setText(String.valueOf(this.port));
+        connectButton.setText("Connect");
+
+        hostText.setEditable(true);
+        portText.setEditable(true);
+        connectButton.setEnabled(true);
+
+        keyTxt.setEditable(false);
+        messageTxt.setEditable(false);
+        sendButton.setEnabled(false);
+    }
+
     private void connect() {
         connected = true;
         connectButton.setText("Disconnect");
         hostText.setEditable(false);
         portText.setEditable(false);
-        keyTxt.setEditable(true);
-        messageTxt.setEditable(true);
-        sendButton.setEnabled(true);
+
+        if (type.equals("ENC")) {
+            keyTxt.setEditable(true);
+            messageTxt.setEditable(true);
+            sendButton.setEnabled(true);
+        } else {
+            keyTxt.setEditable(false);
+            messageTxt.setEditable(false);
+            sendButton.setEnabled(false);
+        }
 
         try {
             this.socket = new Socket(this.server, this.port);
@@ -106,11 +130,13 @@ public class Client {
             keyTxt.setEditable(false);
             messageTxt.setEditable(false);
             sendButton.setEnabled(false);
-            System.out.println("Error connecting to server: " + e.getMessage());
+            JOptionPane.showMessageDialog(null,
+                    "Error connecting to server: " + e.getMessage());
+
         }
 
         //  Creating a thread to listen server
-        ListenServerThread listenServerThread = new ListenServerThread(this.objectInputStream,
+        listenServerThread = new ListenServerThread(this, this.socket, this.objectInputStream,
                 this.objectOutputStream);
         listenServerThread.start();
 
@@ -125,12 +151,12 @@ public class Client {
             keyTxt.setEditable(false);
             messageTxt.setEditable(false);
             sendButton.setEnabled(false);
-            System.out.println("Exception doing login: " + e.getMessage());
-            e.printStackTrace();
+            JOptionPane.showMessageDialog(null,
+                    "Exception doing login: " + e.getMessage());
         }
     }
 
-    private void disconnect() {
+    public void disconnect() {
         connected = false;
         connectButton.setText("Connect");
         hostText.setEditable(true);
@@ -149,9 +175,7 @@ public class Client {
         }
 
         try {
-            objectInputStream.close();
-            objectOutputStream.close();
-            socket.close();
+            listenServerThread.closeStreams();
             System.out.println("Disconnection successful from the server.");
         } catch (IOException e) {
             connected = true;
@@ -167,8 +191,9 @@ public class Client {
 
     private void writeMsgToServer(String message) {
         try {
-            if (this.clientType.equals("ENC")) {
-                objectOutputStream.writeObject(new ChatMessage(ChatMessage.ENCRYPTED_MESSAGE, message));
+            if (this.type.equals("ENC")) {
+                String encrypted = RivestShamirAdleman.encode(Integer.parseInt(this.keyTxt.getText()), message);
+                objectOutputStream.writeObject(new ChatMessage(ChatMessage.ENCRYPTED_MESSAGE, encrypted));
             } else {
                 objectOutputStream.writeObject(new ChatMessage(ChatMessage.UNLOCK_MESSAGE, message));
             }
@@ -179,5 +204,9 @@ public class Client {
 
     private String encodingMessageRSA(int key, String message) {
         return message;
+    }
+
+    public void showMessage (String message) {
+        JOptionPane.showMessageDialog(null, message);
     }
 }
