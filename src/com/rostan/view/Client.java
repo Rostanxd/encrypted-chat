@@ -75,14 +75,14 @@ public class Client {
 
     public void setDefaultProperties() {
         if (type.equals("ENC")) {
-            this.clientChat = new ClientChat(type, "Rostan");
+            this.clientChat = new ClientChat(type, "Alice");
             this.interactingLabel.setText("Here you can write a message, encrypted and send it to server \n" +
                     "to turn a light.");
-            this.sendButton.setText("Send");
+            this.sendButton.setText("Turn on");
         } else {
-            this.clientChat = new ClientChat(type, "Cinthya");
+            this.clientChat = new ClientChat(type, "Bob");
             this.interactingLabel.setText("Here you can turn off the light sending the correct message.");
-            this.sendButton.setText("Unlock");
+            this.sendButton.setText("Turn off");
         }
 
         connected = false;
@@ -105,6 +105,15 @@ public class Client {
         connectButton.setText("Disconnect");
         hostText.setEditable(false);
         portText.setEditable(false);
+
+        //  Setting host and port
+        this.server = hostText.getText();
+        try {
+            this.port = Integer.parseInt(portText.getText());
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null,
+                    "Invalid port: " + e.getMessage());
+        }
 
         if (type.equals("ENC")) {
             keyTxt.setEditable(true);
@@ -206,7 +215,7 @@ public class Client {
         return message;
     }
 
-    public void showMessage (String message) {
+    public void showMessage(String message) {
         JOptionPane.showMessageDialog(null, message);
     }
 }
