@@ -1,9 +1,8 @@
-package com.rostan.view;
+package com.cinthia.view;
 
-import com.rostan.model.ClientThread;
+import com.cinthia.model.ClientThread;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;

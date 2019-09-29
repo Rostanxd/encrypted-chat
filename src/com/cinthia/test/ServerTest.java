@@ -1,4 +1,4 @@
-package com.rostan.test;
+package com.cinthia.test;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

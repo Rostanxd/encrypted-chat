@@ -1,9 +1,9 @@
-package com.rostan.view;
+package com.cinthia.view;
 
-import com.rostan.model.ChatMessage;
-import com.rostan.model.ClientChat;
-import com.rostan.model.ListenServerThread;
-import com.rostan.util.RivestShamirAdleman;
+import com.cinthia.model.ChatMessage;
+import com.cinthia.model.ClientChat;
+import com.cinthia.model.ListenServerThread;
+import com.cinthia.util.RivestShamirAdleman;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;

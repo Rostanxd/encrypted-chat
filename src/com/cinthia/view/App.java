@@ -1,4 +1,4 @@
-package com.rostan.view;
+package com.cinthia.view;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;

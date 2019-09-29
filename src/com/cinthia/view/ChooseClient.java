@@ -1,7 +1,7 @@
-package com.rostan.view;
+package com.cinthia.view;
 
-import com.rostan.CallClients;
-import com.rostan.CallServer;
+import com.cinthia.CallClients;
+import com.cinthia.CallServer;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;

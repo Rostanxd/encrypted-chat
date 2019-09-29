@@ -1,4 +1,4 @@
-package com.rostan.model;
+package com.cinthia.model;
 
 import java.io.Serializable;
 

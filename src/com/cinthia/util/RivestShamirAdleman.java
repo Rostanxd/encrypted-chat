@@ -1,4 +1,4 @@
-package com.rostan.util;
+package com.cinthia.util;
 
 public class RivestShamirAdleman {
 

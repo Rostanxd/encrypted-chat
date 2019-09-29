@@ -1,8 +1,7 @@
-package com.rostan.model;
+package com.cinthia.model;
 
-import com.rostan.view.Server;
+import com.cinthia.view.Server;
 
-import java.awt.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;

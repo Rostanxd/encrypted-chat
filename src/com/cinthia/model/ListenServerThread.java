@@ -1,6 +1,6 @@
-package com.rostan.model;
+package com.cinthia.model;
 
-import com.rostan.view.Client;
+import com.cinthia.view.Client;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

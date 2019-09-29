@@ -1,6 +1,6 @@
-package com.rostan;
+package com.cinthia;
 
-import com.rostan.view.Server;
+import com.cinthia.view.Server;
 
 import javax.swing.*;
 

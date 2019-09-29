@@ -1,6 +1,6 @@
-package com.rostan;
+package com.cinthia;
 
-import com.rostan.view.ChooseClient;
+import com.cinthia.view.ChooseClient;
 
 import javax.swing.*;
 
