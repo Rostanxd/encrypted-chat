@@ -32,7 +32,8 @@ public class ClientFrame extends JFrame {
 
     public ClientFrame(String type) throws HeadlessException {
         //  Components
-        backgroundImgLabel = new JLabel(new ImageIcon("C:\\Users\\User\\Documents\\Programming\\Projects\\Cynthia\\encrypted-chat\\src\\resources\\background1.png"));
+        backgroundImgLabel = new JLabel();
+        backgroundImgLabel.setIcon(new ImageIcon(ClassLoader.getSystemResource("background1.png")));
         titleLabel = new JLabel("IoT application - RSA Encryption");
         messageOneLabel = new JLabel("Establish connection with the Server");
         hostLabel = new JLabel("Host");
