@@ -1,6 +1,7 @@
 package com.cinthia.model;
 
 import com.cinthia.view.Client;
+import com.cinthia.view.ClientFrame;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -11,10 +12,10 @@ public class ListenServerThread extends Thread {
     private Socket socket;
     private ObjectInputStream objectInputStream;
     private ObjectOutputStream objectOutputStream;
-    private Client client;
+    private ClientFrame client;
     private ServerState serverState;
 
-    public ListenServerThread(Client client, Socket socket, ObjectInputStream objectInputStream,
+    public ListenServerThread(ClientFrame client, Socket socket, ObjectInputStream objectInputStream,
                               ObjectOutputStream objectOutputStream) {
         this.client = client;
         this.socket = socket;
@@ -63,13 +64,13 @@ public class ListenServerThread extends Thread {
                         this.client.keyTxt.setText("");
                         this.client.messageTxt.setText("");
                     }
-                    if (this.client.type.equals("ENC") && serverState != null && serverState.state == 5) {
-                        System.out.println("Server say: Invalid message decoder!");
-                        this.client.keyTxt.setEditable(false);
-                        this.client.messageTxt.setEditable(false);
-                        this.client.sendButton.setEnabled(false);
-                        this.client.showMessage("Error: Decoder client, has entered a invalid message!");
-                    }
+//                    if (this.client.type.equals("ENC") && serverState != null && serverState.state == 5) {
+//                        System.out.println("Server say: Invalid message decoder!");
+//                        this.client.keyTxt.setEditable(false);
+//                        this.client.messageTxt.setEditable(false);
+//                        this.client.sendButton.setEnabled(false);
+//                        this.client.showMessage("Error: Decoder client, has entered a invalid message!");
+//                    }
                     if (this.client.type.equals("DEC") && serverState != null && serverState.state == 5) {
                         System.out.println("Server say: Invalid message decoder!");
                         this.client.keyTxt.setEditable(true);
